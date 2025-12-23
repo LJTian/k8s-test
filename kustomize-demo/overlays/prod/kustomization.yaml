@@ -13,7 +13,7 @@ commonLabels:
 # 【功能 3: 镜像替换】
 # 强行将 base 里的 nginx:1.14.2 替换为最新版 1.21
 images:
-- name: m.daocloud.io/docker.io/library/nginx
+- name: docker-0.unsee.tech/docker.io/library/nginx
   newTag: '1.21'
 
 # 【功能 4: ConfigMap Generator (杀手锏)】
