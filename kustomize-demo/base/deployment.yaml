@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx
+spec:
+  selector:
+    matchLabels:
+      app: my-nginx
+  template:
+    metadata:
+      labels:
+        app: my-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: m.daocloud.io/docker.io/library/nginx:1.14.2 # 这是一个旧版本，稍后我们会在 Prod 环境替换它
+        ports:
+        - containerPort: 80

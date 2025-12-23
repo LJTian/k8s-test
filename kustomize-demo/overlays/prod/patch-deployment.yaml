@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-nginx  # 必须与 Base 名称一致，Kustomize 才能定位
+spec:
+  replicas: 3     # 【修改】将副本数从默认值改为 3
+  template:
+    spec:
+      containers:
+      - name: nginx
+        volumeMounts: # 【注入】Base 里没有挂载，我们在补丁里强行加上
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+      volumes:    # 【注入】定义 Volume，引用下方生成的 ConfigMap
+      - name: html-volume
+        configMap:
+          name: site-config
