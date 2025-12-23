@@ -1,0 +1,28 @@
+resources:
+- ../../base   # 引用 Base 层
+
+# 【功能 1: 统一前缀】
+# 所有生成的资源（Service, Deployment, ConfigMap）名字都会加上 "prod-"
+namePrefix: prod-
+
+# 【功能 2: 统一标签】
+# 所有资源都会被打上 "env: production" 标签
+commonLabels:
+  env: production
+
+# 【功能 3: 镜像替换】
+# 强行将 base 里的 nginx:1.14.2 替换为最新版 1.21
+images:
+- name: docker-0.unsee.tech/docker.io/library/nginx
+  newTag: '1.21'
+
+# 【功能 4: ConfigMap Generator (杀手锏)】
+# 读取文件生成 ConfigMap，并自动添加 Hash 后缀
+configMapGenerator:
+- name: site-config
+  files:
+  - config/index.html
+
+# 【功能 5: 应用补丁】
+patches:
+- path: patch-deployment.yaml
