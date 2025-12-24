@@ -1,0 +1,74 @@
+# 1. 定义独立的命名空间
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mysql-db
+---
+# 2. 定义持久化存储 (PVC) - 哪怕 Pod 挂了数据也不丢
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: mysql-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+# 3. 定义 MySQL 应用 (Deployment)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deploy
+  namespace: mysql-db
+  labels:
+    app: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: m.daocloud.io/docker.io/library/mariadb:10.11
+        # 端口设置
+        ports:
+        - containerPort: 3306
+        # 环境变量 (生产环境建议用 Secret，这里为了方便直接写了)
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret  # 对应刚才创建的 Secret 名字
+              key: password       # 对应 Secret 里的 key
+        # 挂载数据卷
+        volumeMounts:
+        - name: mysql-store
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-store
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+---
+# 4. 定义对外服务 (Service)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-svc
+  namespace: mysql-db
+spec:
+  selector:
+    app: mysql
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 3306        # K8s 内部 Service 端口
+      targetPort: 3306  # 容器内部 MySQL 端口
+      nodePort: 30306   # 【重点】宿主机访问端口 (范围 30000-32767)
